@@ -120,8 +120,6 @@ A function 'replace-attr' that takes:
 
 (define lattr (attributes Person))
 
-(define rec (last Person))
-
 (define-syntax SELECT
   (syntax-rules (FROM WHERE)
     [(SELECT attrs FROM table)
