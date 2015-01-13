@@ -133,5 +133,3 @@ A function 'replace-attr' that takes:
      (map (lambda (tuple) (find-attrs lattr lattr tuple))
           table)]))
 |#
-
-(SELECT '("Name" "LikesChocolate") FROM Person)
