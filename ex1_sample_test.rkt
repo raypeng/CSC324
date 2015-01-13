@@ -16,17 +16,34 @@ you are strongly advised to add to them on your own.
 ; Tests for search-table
 (test (search-table '((1 2 3) (4 2) (3 3 4) (5 3 2 1)) 1)
       '((1 2 3) (5 3 2 1)))
-
 (test (search-table '((1 2 3) (4 2) (3 3 4) (5 3 2 1)) 10)
       '())
 
+(test (search-table '(((1 2 3) 4) (2 3 4)) '(1 2 3))
+      '(((1 2 3) 4)))
+(test (search-table '(((1 2 3) 4) (2 3 4)) '())
+      '())
 
 ; Tests for search-table-2
 (test (search-table-2 '((1 2 3) (4 2) (3 3 4) (5 3 2 1)) 1 3)
       '((5 3 2 1)))
+
+(test (search-table-2 '((1 2 3) (4 2) (3 3 4) (5 3 2 1)) 1 2)
+      '())
+(test (search-table-2 '((1 2 3) (4 2) (3 3 4) (5 3 2 1)) 1 0)
+      '((1 2 3)))
+(test (search-table-2 '((1 2 3) (4 2) (3 3 4) (5 3 2 1)) 1 99)
+      '())
 
 ; Tests for max-sublist
 (test (max-sublist '(-1 10 -4 5 3 -100 6))
       14)
 (test (max-sublist '(-4 -1 -2 -3))
       0)
+
+(test (max-sublist '())
+      0)
+(test (max-sublist '(-1))
+      0)
+(test (max-sublist '(-1 -2 1))
+      1)
