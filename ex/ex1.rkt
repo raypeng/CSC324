@@ -37,6 +37,7 @@ You may use either explicit recursion, or higher-order list functions.
 |#
 ; Feel free to change this signature to use the shorthand for defining functions
 ; (define (search-table ...) (...))
+
 (define (search-table table item)
   (define (satisfy? lst)
     (not (equal? #f (member item lst))))
@@ -62,6 +63,7 @@ Hint: look up "declaring optional arguments in Racket". The syntax is
 pretty straight-forward. Note that optional arguments must appear
 *after* all the required ones.
 |#
+
 (define (search-table-2 table item [pos 0])
   (define (satisfy? lst)
     (if (>= pos (length lst))
@@ -90,6 +92,7 @@ pretty straight-forward. Note that optional arguments must appear
 
 Hint: you may find the "apply" function helpful.
 |#
+
 (define (max-sublist lst)
   (define (max-sub lst curr-max global-max)
     (if (empty? lst)

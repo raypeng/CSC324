@@ -22,7 +22,8 @@
 ; to the provide statement.
 (provide attributes
          tuples
-         size)
+         size
+         SELECT) ; just for testing
 
 ; Part 0: Semantic aliases
 
@@ -32,6 +33,7 @@
 
   Returns a list of the attributes in 'table', in the order they appear.
 |#
+
 (define attributes car)
 
 #|
@@ -41,6 +43,7 @@
   Returns a list of all tuples in 'table', in the order they appear.
   Note: it is possible for 'table' to contain no tuples.
 |#
+
 (define tuples cdr)
 
 #|
@@ -49,17 +52,19 @@
 
   Returns the number of tuples in 'table'.
 |#
-(define (size x) (length (tuples x)))
+
+(define (size x) 
+  (length (tuples x)))
 
 
 ; Part I "WHERE" helpers; you may or may not wish to implement these.
 
-(define (list-index e l)
-  (if (empty? l)
+(define (list-index e lst)
+  (if (empty? lst)
       -1
-      (if (equal? e (car l))
+      (if (equal? e (car lst))
           0
-          (+ 1 (list-index e (cdr l))))))
+          (+ 1 (list-index e (cdr lst))))))
 
 #|
 A function that takes: 
@@ -74,8 +79,15 @@ A function that takes:
   (list-ref tuple (list-index attr lattr)))
 
 (define (find-attrs lattr attrs tuple)
-  (map (lambda (attr) (find-attr lattr attr tuple))
+  (map (lambda (attr) 
+         (find-attr lattr attr tuple))
        attrs))
+
+(define (find-attrs-table attrs table)
+  (cons attrs
+        (map (lambda (tuple)
+               (find-attrs (attributes table) attrs tuple))
+             (tuples table))))
 
 #|
 A function that takes:
@@ -94,16 +106,27 @@ A function 'replace-attr' that takes:
   - a list of attributes
 
   and returns a function 'f' which takes a tuple and does the following:
-    - If 'x' is in the list of attributes, return the corrresponding value 
+    - If 'x' is in the list of attributes, return the corresponding value 
       in the tuple.
     - Otherwise, just ignore the tuple and return 'x'.
 |#
 
 (define (replace-attr attr lattr)
-        (lambda (tuple) (if (>= (list-index attr lattr) 0)
-                            (find-attr attr lattr tuple)
-                            attr)))
+  (lambda (tuple) 
+    (if (>= (list-index attr lattr) 0)
+        (find-attr attr lattr tuple)
+        attr)))
 
+; SELECT syntaxes
+
+(define-syntax SELECT
+  (syntax-rules (* FROM WHERE ORDER BY)
+    [(SELECT * FROM <table>)
+     (find-attrs-table (attributes <table>) <table>)]
+    [(SELECT <attrs> FROM <table>)
+     (find-attrs-table <attrs> <table>)]))
+      
+      
 ; Starter for Part 4; feel free to ignore!
 
 ; What should this macro do?
@@ -117,14 +140,6 @@ A function 'replace-attr' that takes:
     [(replace atom table)
      ; Change this!
      (void)]))
-
-(define lattr (attributes Person))
-
-(define-syntax SELECT
-  (syntax-rules (FROM WHERE)
-    [(SELECT attrs FROM table)
-     (map (lambda (tuple) (find-attrs lattr attrs tuple))
-          table)]))
 
 #|
 (define-syntax SELECT *

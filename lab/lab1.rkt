@@ -1,5 +1,16 @@
 #lang racket
 
+(list) ; '()
+(append) ; '()
+(append '(1) 2) ; OK, '(1 . 2)
+; (length) ; error
+; (define foo foo) ; error, foo undefined
+(define (bar) bar) ; OK, bar already defined
+; (define baz (baz)) ; error, baz undefined
+(define (qux) (qux)) ; OK 
+qux ; #<procedure:qux>
+; (qux) ; infinite loop
+
 (define (num-evens lst)
   (if (empty? lst)
       0
