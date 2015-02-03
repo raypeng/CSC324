@@ -156,7 +156,7 @@
      (+ x y)])) ; x binded at the time macro is defined
 (let ([x 50])
   (add-x 100))
-; 10 + 100 lexical scope <-
+; 10 + 100 lexical scope <- this is what happened in Racket
 ; 50 + 100 (+ x 100) dynamic scope
 
 (define-syntax my-or
