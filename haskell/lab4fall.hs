@@ -11,6 +11,8 @@ celsiusToFahrenheit x = 1.8 * x + 32
 join [] = []
 join (x:xs) = x ++ join xs
 
+-- haskell deduce lst must be of type list from second line
+-- hence trying to call numCommon [] 1 will give a type err
 numCommon [] lst = 0
 numCommon (x:xs) lst = if elem x lst
                        then 1 + numCommon xs lst

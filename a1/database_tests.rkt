@@ -33,7 +33,6 @@
     ("David" "CSC343")
     ))
 
-
 #|
 All tests go below. 
 We have divided our tests into five sections:
@@ -50,9 +49,9 @@ and your TAs will appreciate it!
 ; ---- SELECT/FROM tests ----
 ; Select all
 (test (SELECT * FROM Person)
-      '(("Name" "Age" "LikesChocolate") 
-        ("David" 20 #t) 
-        ("Jen" 30 #t) 
+      '(("Name" "Age" "LikesChocolate")
+        ("David" 20 #t)
+        ("Jen" 30 #t)
         ("Paul" 100 #f))) 
 
 ; Reordering columns
@@ -81,7 +80,6 @@ and your TAs will appreciate it!
    ("Bye" 5)
    ("Hi" 10)))
 
-#|
 ; Select all from two product of two tables
 (test (SELECT * FROM [Person "P"] [Teaching "T"])
       '(("P.Name" "Age" "LikesChocolate" "T.Name" "Course")
@@ -141,7 +139,7 @@ and your TAs will appreciate it!
    (3 "Hi" 10 #t "Jen" 30 #t)
    (3 "Hi" 10 #t "Paul" 100 #f)))
 
-
+#|
 ; ---- WHERE ----
 ; Attribute as condition, select all
 (test (SELECT *
@@ -218,7 +216,6 @@ and your TAs will appreciate it!
         ("David" #t 30 "CSC324")
         ("Paul" #f 30 "CSC108")
         ("David" #t 30 "CSC343")))
-
 
 ; ---- ORDER BY ----
 ; Order by attribute
