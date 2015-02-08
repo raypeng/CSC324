@@ -221,20 +221,6 @@ A function 'replace-attr' that takes:
      (append (list (cons <table1> <name1>))
            ...)]))
 
-
-#|
-(define-syntax Filter
-  (syntax-rules ()
-    [(Filter (expr ...) <table>)
-     (cons (attributes <table>)
-           (filter (FilterCond (expr ...) (attributes <table>))
-                   (tuples <table>)))]
-    [(Filter expr <table>)
-     (cons (attributes <table>)
-           (filter (FilterCond expr (attributes <table>))
-                   (tuples <table>)))]))
-|#
-
 (define-syntax SELECT
   (syntax-rules (* FROM WHERE ORDER BY)
     [(SELECT <attrs> FROM <table> ... WHERE <cond> ORDER BY <order>)
@@ -244,7 +230,6 @@ A function 'replace-attr' that takes:
      (SELECT <attrs> FROM
              (order <order> (SELECT * FROM <table> ...)))]             
     [(SELECT <attrs> FROM <table> ... WHERE <cond>)
-;     (replace <cond> (SELECT <foo> FROM <bar> ...))]
      (SELECT <attrs> FROM 
              (replace <cond> (SELECT * FROM <table> ...)))]
     [(SELECT * FROM <table>)
@@ -258,6 +243,18 @@ A function 'replace-attr' that takes:
 ))
 
 ; Starter for Part 4; feel free to ignore!
+
+#|
+(define-syntax Filter
+  (syntax-rules ()
+    [(Filter (expr ...) <table>)
+     (cons (attributes <table>)
+           (filter (FilterCond (expr ...) (attributes <table>))
+                   (tuples <table>)))]
+    [(Filter expr <table>)
+     (cons (attributes <table>)
+           (filter (FilterCond expr (attributes <table>))
+                   (tuples <table>)))]))
 
 (define-syntax OrderFunc
   (syntax-rules ()
@@ -273,32 +270,33 @@ A function 'replace-attr' that takes:
        (if (empty? tuple)
            tuple
            ((replace-attr expr lattr) tuple)))]))
+|#
+
+(define-syntax Sub
+  (syntax-rules ()
+    [(Sub (expr ...) lattr)
+     (lambda (tuple)
+       (if (empty? tuple)
+           tuple
+           (let ([sexpr (list ((Sub expr lattr) tuple)
+                              ...)])
+             (apply (car sexpr) (cdr sexpr)))))]
+    [(Sub expr lattr)
+     (lambda (tuple)
+       (if (empty? tuple)
+           tuple
+           ((replace-attr expr lattr) tuple)))]))
 
 (define-syntax order
   (syntax-rules ()
     [(order (expr ...) <table>)
      (cons (attributes <table>)
            (sort (tuples <table>) gt? #:key
-                 (OrderFunc (expr ...) (attributes <table>))))]
+                 (Sub (expr ...) (attributes <table>))))]
     [(order expr <table>)
      (cons (attributes <table>)
            (sort (tuples <table>) gt? #:key
-                 (OrderFunc expr (attributes <table>))))]))
-
-(define-syntax FilterCond
-  (syntax-rules ()
-    [(FilterCond (expr ...) lattr)
-     (lambda (tuple)
-       (if (empty? tuple)
-           tuple
-           (let ([sexpr (list ((replace-attr expr lattr) tuple)
-                              ...)])
-             (apply (car sexpr) (cdr sexpr)))))]
-    [(FilterCond expr lattr)
-     (lambda (tuple)
-       (if (empty? tuple)
-           tuple
-           ((replace-attr expr lattr) tuple)))]))
+                 (Sub expr (attributes <table>))))]))
 
 ; What should this macro do?
 (define-syntax replace
@@ -307,13 +305,13 @@ A function 'replace-attr' that takes:
     [(replace (expr ...) <table>)
      ; Change this!
      (cons (attributes <table>)
-           (filter (FilterCond (expr ...) (attributes <table>))
+           (filter (Sub (expr ...) (attributes <table>))
                    (tuples <table>)))]
     ; The base case, when given just an atom. This is easier!
     [(replace expr <table>)
      ; Change this!
      (cons (attributes <table>)
-           (filter (FilterCond expr (attributes <table>))
+           (filter (Sub expr (attributes <table>))
                    (tuples <table>)))]))
 
 
@@ -330,8 +328,8 @@ A function 'replace-attr' that takes:
                (3 "Hi" 10 #t)))
 (SELECT * FROM [Person "P"] [Teaching "T"])
 
-(FilterCond (> "Age" 25) '("Name" "Age" "LikesChocolate"))
-((FilterCond (> "Age" 25) '("Name" "Age" "LikesChocolate")) '("David" 20 #t))
+(Sub (> "Age" 25) '("Name" "Age" "LikesChocolate"))
+((Sub (> "Age" 25) '("Name" "Age" "LikesChocolate")) '("David" 20 #t))
 
 (SELECT * FROM Person WHERE (> "Age" 25))
 (SELECT '() FROM Teaching)
@@ -347,16 +345,27 @@ A function 'replace-attr' that takes:
 (cons
  (attributes (SELECT * FROM Teaching))
  (filter
-  (FilterCond
+  (Sub
    (And #t (equal? "Name" "David"))
    (attributes (SELECT * FROM Teaching)))
   (tuples (SELECT * FROM Teaching))))
 
-(FilterCond #t (attributes Teaching))
-((FilterCond #t (attributes Teaching)) '("David" "CSC343"))
+(Sub #t (attributes Teaching))
+((Sub #t (attributes Teaching)) '("David" "CSC343"))
 
-((FilterCond "LikesChocolate" (attributes Person)) '("David" 20 #f))
+((Sub "LikesChocolate" (attributes Person)) '("David" 20 #f))
 (SELECT * FROM Person WHERE "LikesChocolate")
 
 (SELECT * FROM Person ORDER BY "Age")
+
+(SELECT * FROM Teaching WHERE (And #t (equal? "Name" "David")))
+
+Teaching
+
+(replace
+ (And #t (equal? "Name" "David"))
+ Teaching)
+
+(SELECT * FROM Teaching ORDER BY
+ (+ (string-length "Name") (string-length "Course")))
 |#
