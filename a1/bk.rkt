@@ -128,8 +128,7 @@ A function that takes:
 
 (define (make-lattr-partial lattr lattrs name)
   (define (append-name attr)
-    (if (and (not (eq? attr -1))
-             (> (num-occur attr lattrs) 1))
+    (if (> (num-occur attr lattrs) 1)
         (string-append name "." attr)
         attr))
   (map append-name lattr))
@@ -166,13 +165,11 @@ A function that takes:
 
 ; (find-allattrs-table-mult ... TODO
 
-#| not needed?
 (define (find-attrs-table-mult attrs tablepairs)
   (find-attrs-table attrs
                     (find-allattrs-table-mult tablepairs)))
 
 ; (find-attrs-table-mult '("P.Name" "Course" "Age") ... TODO
-|#
 
 #|
 A function that takes:
@@ -219,12 +216,10 @@ A function 'replace-attr' that takes:
     [(ToPair [<table1> <name1>])
      (list (cons <table1> <name1>))]
     [(ToPair <table>)
-     (list (cons <table> -1))]
-    [(ToPair <entry> ...)
-     (append (ToPair <entry>)
-             ...)]))
-
-; (ToPair Person Teaching)
+     (list <table>)]
+    [(ToPair [<table1> <name1>] ...)
+     (append (list (cons <table1> <name1>))
+           ...)]))
 
 (define-syntax SELECT
   (syntax-rules (* FROM WHERE ORDER BY)
@@ -241,16 +236,15 @@ A function 'replace-attr' that takes:
      <table>]
     [(SELECT <attrs> FROM <table>)
      (find-attrs-table <attrs> <table>)]
-    [(SELECT * FROM <entry1> <entry2> ...)
-     (find-allattrs-table-mult (ToPair <entry1> <entry2> ...))]
-    [(SELECT <attrs> FROM <entry1> <entry2> ...)
-     (SELECT <attrs> FROM 
-             (find-allattrs-table-mult (ToPair <entry1> <entry2> ...)))]
+    [(SELECT * FROM <pair1> <pair2> ...)
+     (find-allattrs-table-mult (ToPair <pair1> <pair2> ...))]
+    [(SELECT <attrs> FROM <pair1> <pair2> ...)
+     (find-attrs-table-mult <attrs> (ToPair <pair1> <pair2> ...))]
 ))
 
 ; Starter for Part 4; feel free to ignore!
 
-#| not needed?
+#|
 (define-syntax Filter
   (syntax-rules ()
     [(Filter (expr ...) <table>)
@@ -319,6 +313,7 @@ A function 'replace-attr' that takes:
      (cons (attributes <table>)
            (filter (Sub expr (attributes <table>))
                    (tuples <table>)))]))
+
 
 #|
 (SELECT '("T.Name" "Age") FROM [Person "P"] [Teaching "T"])
