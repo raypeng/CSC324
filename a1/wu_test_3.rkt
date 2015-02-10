@@ -1,8 +1,8 @@
 #| Assignment 1 - Racket Query Language Tests (due February 11, noon)
 
 ***Write the names and CDF accounts for each of your group members below.***
-<Name>, <CDF>
-<Name>, <CDF>
+Rui Peng, c5pengru
+Siqi Wu,  g3orion
 |#
 
 ; Note the use of plai here; this is required for "test"

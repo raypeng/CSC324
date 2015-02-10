@@ -1,9 +1,10 @@
 #| Assignment 1 - Racket Query Language (due February 11, noon)
 
 ***Write the names and CDF accounts for each of your group members below.***
-<Name>, <CDF>
-<Name>, <CDF>
+Rui Peng, c5pengru
+Siqi Wu,  g3orion
 |#
+
 #lang racket
 
 (define Person
@@ -29,7 +30,7 @@
 (provide attributes
          tuples
          size
-         SELECT) ; just for testing
+         SELECT)
 
 ; Part 0: Semantic aliases
 
@@ -62,7 +63,18 @@
 (define (size x) 
   (length (tuples x)))
 
+
 ; Part I "WHERE" helpers; you may or may not wish to implement these.
+
+#|
+(list-index e lst)
+  e: an arbitrary value
+  list: a list
+
+  Returns the index of 'e' in 'lst' if 'e' in 'lst', else return -1
+
+(list-index 3 '(2 8 3))
+|#
 
 (define (list-index e lst)
   (if (empty? lst)
@@ -73,28 +85,54 @@
               -1
               (+ 1 (list-index e (cdr lst)))))))
 
-; (list-index 3 '(2 8 3))
-
 #|
+(find-attr lattr attr tuple)
 A function that takes: 
   - a list of attributes
   - a string (representing an attribute)
   - a tuple
 
   and returns the value of the tuple corresponding to that attribute.
+
+Helper function used by 'find-attrs'.
+
+(find-attr '("Name" "Age" "LikesChocolate") "Age" '("David" 20 #t))
 |#
 
 (define (find-attr lattr attr tuple)
   (list-ref tuple (list-index attr lattr)))
 
-; (find-attr '("Name" "Age" "LikesChocolate") "Age" '("David" 20 #t))
+#|
+(find-attrs lattr attrs tuple)
+A function that takes: 
+  - a list of all attributes
+  - a list of wanted attributes
+  - a tuple
+
+  and returns the values of the tuple corresponding to the wanted attributes.
+
+Helper function used by 'find-attrs-table'.
+
+(find-attrs '("Name" "Age" "LikesChocolate") '("Name" "Age") '("David" 20 #t))
+|#
 
 (define (find-attrs lattr attrs tuple)
   (map (lambda (attr)
          (find-attr lattr attr tuple))
        attrs))
 
-; (find-attrs '("Name" "Age" "LikesChocolate") '("Name" "Age") '("David" 20 #t))
+#|
+(find-attrs-table attrs table)
+A function that takes: 
+  - a list of wanted attributes
+  - a table
+
+  and returns part of the table with only wanted attributes.
+
+Directly used for 'SELECT <attrs> FROM <table>'.
+
+(find-attrs-table '("Name" "Age") Person)
+|#
 
 (define (find-attrs-table attrs table)
   (cons attrs
@@ -102,7 +140,18 @@ A function that takes:
                (find-attrs (attributes table) attrs tuple))
              (tuples table))))
 
-; (find-attrs-table '("Name" "Age") Person)
+#|
+(cartesian-product t1 t2)
+A function that takes: 
+  - a list of records in table t1
+  - a list of records in table t2
+
+  and returns the cartesian product of records.
+
+Used for performing table joins by 'join'.
+
+(cartesian-product (tuples Person) (tuples Teaching))
+|#
 
 (define (cartesian-product t1 t2)
   (if (empty? t1)
@@ -112,34 +161,89 @@ A function that takes:
                    t2)
               (cartesian-product (cdr t1) t2))))
 
+#|
+(join ltable)
+A function that takes: 
+  - a list of tables to be joined
+
+  and returns the INNER JOIN of the tables.
+
+Used by 'find-allattrs-table-mult' for 'SELECT * FROM <table>'.
+
+(join (list (tuples Person) (tuples Teaching) (tuples Teaching)))
+|#
+
 (define (join ltable)
   (if (empty? (cdr ltable))
       (car ltable)
       (cartesian-product (car ltable)
                          (join (cdr ltable)))))
 
-; (join (list (tuples Person) (tuples Teaching) (tuples Teaching)))
+#|
+(duplicate-attr? attr lattrs)
+A function that takes:
+  - a value representing the attribute name to be examined
+  - a list of attributes
 
-(define (num-occur attr lattrs)
-  (length (filter (lambda (x) (eq? attr x))
-                  (apply append lattrs))))
+  and returns #t if number of occurrences of the value in the list > 1.
 
-; (num-occur 1 '((1 2) (3 4 1) (2 1)))
+Used for checking duplicate names in table joins.
+
+(duplicate-attr? "Name" '(("Name" "Age") ("Name" "Count")))
+-> 2
+|#
+
+(define (duplicate-attr? attr lattrs)
+  (> (length (filter (lambda (x) (eq? attr x))
+                     (apply append lattrs)))
+     1))
+
+#|
+(make-lattr-partial lattr lattrs name)
+A function that takes:
+  - a list of attributes
+  - a list of lists of attributes
+  - a string representing the potential renaming prefix,
+    or -1 representing no renaming prefix provided
+
+  and returns a list of renamed attributes if needed.
+
+Used by 'make-lattr' for partially adding prefixes.
+
+(make-lattr-partial '("Name" "Age")
+                    '(("Name" "Age") ("Name" "Course"))
+                    "P")
+-> '("P.Name" "Age")
+
+(make-lattr-partial '("Name" "Age")
+                    '(("Name" "Age") ("Name" "Course"))
+                    -1)
+-> '("Name" "Age")
+|#
 
 (define (make-lattr-partial lattr lattrs name)
   (define (append-name attr)
     (if (and (not (eq? attr -1))
-             (> (num-occur attr lattrs) 1))
+             (duplicate-attr? attr lattrs))
         (string-append name "." attr)
         attr))
   (map append-name lattr))
 
 #|
-(make-lattr-partial '("Name" "Age")
-                    '(("Name" "Age") ("Name" "Course"))
-                    "P")
+(make-lattr lattrs lnames)
+A function that takes:
+  - a list of lists of attributes
+  - a list of potential renaming prefix
+
+  and returns a list of renamed attributes if needed.
+
+Used by 'find-allattrs-table-mult' as new table attribute list.
+
+(make-lattr '(("Name" "Age") ("Name" "Course"))
+            '("P" "T"))
+-> '("P.Name" "Age" "T.Name" "Course")
 |#
-                      
+
 (define (make-lattr lattrs lnames)
   (define (make-lattr-help lattrs lattrs-bk lnames)
     (if (empty? lattrs)
@@ -153,34 +257,32 @@ A function that takes:
   (apply append (make-lattr-help lattrs lattrs lnames)))
 
 #|
-(make-lattr '(("Name" "Age") ("Name" "Course"))
-            '("P" "T"))
+(find-allattrs-table-mult tablepairs)
+A function that takes:
+  - a list of table, prefix pairs (prefix = -1 if no name specified)
+
+  and returns a joined table with correct name prefixes.
+
+Directly used for 'SELECT * FROM <table1> <table2> ...'.
 |#
 
 (define (find-allattrs-table-mult tablepairs)
-  (define tables (map car tablepairs))
-  (define records (join (map tuples tables)))
-  (define lattr (make-lattr (map attributes tables)
-                            (map cdr tablepairs)))
-  (cons lattr records))
-
-; (find-allattrs-table-mult ... TODO
-
-#| not needed?
-(define (find-attrs-table-mult attrs tablepairs)
-  (find-attrs-table attrs
-                    (find-allattrs-table-mult tablepairs)))
-
-; (find-attrs-table-mult '("P.Name" "Course" "Age") ... TODO
-|#
+  (let* ([tables (map car tablepairs)]
+         [records (join (map tuples tables))]
+         [lattr (make-lattr (map attributes tables)
+                            (map cdr tablepairs))])
+    (cons lattr records)))
 
 #|
+(filter-table f table)
 A function that takes:
   - f: a unary function that takes a tuple and returns a boolean value
   - table: a valid table
 
   and returns a new table containing only the tuples in 'table'
   that satisfy 'f'.
+
+Used by 'where' macro to implement filtering.
 |#
 
 (define (filter-table f table)
@@ -188,6 +290,24 @@ A function that takes:
         (filter f (tuples table))))
 
 #|
+(sort-table keyfunc table)
+A function that takes:
+  - keyfunc: a function that specifies the #:key within a tuple for sorting   
+  - table: a valid table
+
+  and returns a new table sorted decendingly according to keyfunc.
+
+Used by 'order' macro to implement sorting.
+|#
+
+(define (sort-table keyfunc table)
+  (cons (attributes table)
+        (sort (tuples table)
+              gt?
+              #:key keyfunc)))
+
+#|
+(replace-attr x lattr)
 A function 'replace-attr' that takes:
   - x 
   - a list of attributes
@@ -196,6 +316,14 @@ A function 'replace-attr' that takes:
     - If 'x' is in the list of attributes, return the corresponding value 
       in the tuple.
     - Otherwise, just ignore the tuple and return 'x'.
+
+Used by 'replace' macro a lot.
+
+((replace-attr "Name" '("Age" "Name")) '(12 "David"))
+-> "David"
+
+((replace-attr "wtf" '("Age" "Name")) '(12 "David"))
+-> "wtf"
 |#
 
 (define (replace-attr x lattr)
@@ -204,15 +332,35 @@ A function 'replace-attr' that takes:
         (find-attr lattr x tuple)
         x)))
 
-; ((replace-attr "Name" '("Age" "Name")) '(12 "David"))
+#|
+(gt? a b)
+A generic greater than function that deals with strings or numbers.
+Assumes input a and b are always the same type.
 
-; generic gt? with string and number
+Used for implementing sorting of table in ORDER BY.
+
+(gt? 2 1)
+(gt? "David" "Jane")
+|#
+
 (define (gt? a b)
   (if (string? a)
       (string>? a b)
       (> a b)))
 
-; SELECT syntaxes
+#|
+ToPair:
+a macro that transforms
+[Teaching "T"] ... to (Teaching . "T") ...
+Teaching ... to (Teaching . -1) ...
+in order to reorganize tables and names info for further processing.
+
+Used by 'find-allattrs-table-mult' as tables, names representation.
+
+(ToPair Person Teaching)
+
+(ToPair [Person "P"] [Teaching "T"])
+|#
 
 (define-syntax ToPair
   (syntax-rules ()
@@ -222,155 +370,90 @@ A function 'replace-attr' that takes:
      (list (cons <table> -1))]
     [(ToPair <entry> ...)
      (append (ToPair <entry>)
-             ...)]))
+             ...)]
+    ))
 
-; (ToPair Person Teaching)
+#|
+replace:
+a macro that uses 'replace-attr' recursively to transform
+(> "Age" 20) to (> 30 20) by replacing proper attribute values
+so that the expression reduce to a value for future use (filter/sort).
 
+Used by 'where' and 'order' macro directly.
+|#
+
+(define-syntax replace
+  (syntax-rules ()
+    [(replace (expr ...) lattr)
+     (lambda (tuple)
+       (if (empty? tuple)
+           tuple
+           (let ([sexpr (list ((replace expr lattr) tuple)
+                              ...)])
+             (apply (car sexpr) (cdr sexpr)))))]
+    [(replace expr lattr)
+     (lambda (tuple)
+       (if (empty? tuple)
+           tuple
+           ((replace-attr expr lattr) tuple)))]))
+
+#|
+where:
+a macro that deals with 'WHERE <cond>' and dispathes work to 'replace'.
+|#
+
+(define-syntax where
+  (syntax-rules ()
+    [(where <expr> <table>)
+     (filter-table (replace <expr> (attributes <table>))
+                   <table>)]))
+
+#|
+order:
+a macro that deals with 'ORDER BY <value>' and dispatches work to 'replace'.
+|#
+
+(define-syntax order
+  (syntax-rules ()
+    [(order <expr> <table>)
+     (sort-table (replace <expr> (attributes <table>))
+                 <table>)]))
+
+#|
+SELECT syntaxes
+
+order to execution:
+FROM -> WHERE -> ORDER BY -> SELECT
+|#
 (define-syntax SELECT
   (syntax-rules (* FROM WHERE ORDER BY)
+    ; FROM -> WHERE -> ORDER BY -> SELECT
     [(SELECT <attrs> FROM <table> ... WHERE <cond> ORDER BY <order>)
      (SELECT <attrs> FROM
-             (order <order> (replace <cond> (SELECT * FROM <table> ...))))]
+             (order <order>
+                    (where <cond> 
+                           (SELECT * FROM <table> ...))))]
+    ; FROM -> ORDER BY -> SELECT
     [(SELECT <attrs> FROM <table> ... ORDER BY <order>)
      (SELECT <attrs> FROM
-             (order <order> (SELECT * FROM <table> ...)))]             
+             (order <order>
+                    (SELECT * FROM <table> ...)))]       
+    ; FROM -> WHERE -> SELECT
     [(SELECT <attrs> FROM <table> ... WHERE <cond>)
      (SELECT <attrs> FROM 
-             (replace <cond> (SELECT * FROM <table> ...)))]
+             (where <cond>
+                    (SELECT * FROM <table> ...)))]
+    ; FROM: base case, all attrs
     [(SELECT * FROM <table>)
      <table>]
+    ; FROM -> SELECT: single table, attrs
     [(SELECT <attrs> FROM <table>)
      (find-attrs-table <attrs> <table>)]
+    ; FROM -> SELECT: multiple table, all attrs
     [(SELECT * FROM <entry1> <entry2> ...)
-     (find-allattrs-table-mult (ToPair <entry1> <entry2> ...))]
+     (find-allattrs-table-mult (ToPair <entry1> <entry2> ...))]    
+    ; FROM -> SELECT: multiple table, attrs
     [(SELECT <attrs> FROM <entry1> <entry2> ...)
      (SELECT <attrs> FROM 
              (find-allattrs-table-mult (ToPair <entry1> <entry2> ...)))]
 ))
-
-; Starter for Part 4; feel free to ignore!
-
-#| not needed?
-(define-syntax Filter
-  (syntax-rules ()
-    [(Filter (expr ...) <table>)
-     (cons (attributes <table>)
-           (filter (FilterCond (expr ...) (attributes <table>))
-                   (tuples <table>)))]
-    [(Filter expr <table>)
-     (cons (attributes <table>)
-           (filter (FilterCond expr (attributes <table>))
-                   (tuples <table>)))]))
-
-(define-syntax OrderFunc
-  (syntax-rules ()
-    [(OrderFunc (expr ...) lattr)
-     (lambda (tuple)
-       (if (empty? tuple)
-           tuple
-           (let ([sexpr (list ((replace-attr expr lattr) tuple)
-                              ...)])
-             (apply (car sexpr) (cdr sexpr)))))]
-    [(OrderFunc expr lattr)
-     (lambda (tuple)
-       (if (empty? tuple)
-           tuple
-           ((replace-attr expr lattr) tuple)))]))
-|#
-
-(define-syntax Sub
-  (syntax-rules ()
-    [(Sub (expr ...) lattr)
-     (lambda (tuple)
-       (if (empty? tuple)
-           tuple
-           (let ([sexpr (list ((Sub expr lattr) tuple)
-                              ...)])
-             (apply (car sexpr) (cdr sexpr)))))]
-    [(Sub expr lattr)
-     (lambda (tuple)
-       (if (empty? tuple)
-           tuple
-           ((replace-attr expr lattr) tuple)))]))
-
-(define-syntax order
-  (syntax-rules ()
-    [(order (expr ...) <table>)
-     (cons (attributes <table>)
-           (sort (tuples <table>) gt? #:key
-                 (Sub (expr ...) (attributes <table>))))]
-    [(order expr <table>)
-     (cons (attributes <table>)
-           (sort (tuples <table>) gt? #:key
-                 (Sub expr (attributes <table>))))]))
-
-; What should this macro do?
-(define-syntax replace
-  (syntax-rules ()
-    ; The recursive step, when given a compound expression
-    [(replace (expr ...) <table>)
-     ; Change this!
-     (cons (attributes <table>)
-           (filter (Sub (expr ...) (attributes <table>))
-                   (tuples <table>)))]
-    ; The base case, when given just an atom. This is easier!
-    [(replace expr <table>)
-     ; Change this!
-     (cons (attributes <table>)
-           (filter (Sub expr (attributes <table>))
-                   (tuples <table>)))]))
-
-#|
-(SELECT '("T.Name" "Age") FROM [Person "P"] [Teaching "T"])
-(find-attrs-table '("Name" "Age") Person)
-(SELECT '("Name" "Age") FROM Person)
-(SELECT * FROM Person)
-(ToPair Person)
-(SELECT '("A" "B")
-        FROM '(("C" "A" "B" "D")
-               (1 "Hi" 5 #t)
-               (2 "Bye" 5 #f)
-               (3 "Hi" 10 #t)))
-(SELECT * FROM [Person "P"] [Teaching "T"])
-
-(Sub (> "Age" 25) '("Name" "Age" "LikesChocolate"))
-((Sub (> "Age" 25) '("Name" "Age" "LikesChocolate")) '("David" 20 #t))
-
-(SELECT * FROM Person WHERE (> "Age" 25))
-(SELECT '() FROM Teaching)
-(SELECT * FROM Teaching WHERE (equal? "Name" "David"))
-(SELECT '() FROM Teaching WHERE (equal? "Name" "David"))
-
-(SELECT * FROM Teaching WHERE (And #t (equal? "Name" "David")))
-
-(SELECT '("P1.Name" "P1.LikesChocolate" "P.Age" "Course")
-        FROM [Person "P"] [Teaching "T"] [Person "P1"]
-        WHERE (And "P.LikesChocolate" (equal? "P1.Name" "T.Name")))
-
-(cons
- (attributes (SELECT * FROM Teaching))
- (filter
-  (Sub
-   (And #t (equal? "Name" "David"))
-   (attributes (SELECT * FROM Teaching)))
-  (tuples (SELECT * FROM Teaching))))
-
-(Sub #t (attributes Teaching))
-((Sub #t (attributes Teaching)) '("David" "CSC343"))
-
-((Sub "LikesChocolate" (attributes Person)) '("David" 20 #f))
-(SELECT * FROM Person WHERE "LikesChocolate")
-
-(SELECT * FROM Person ORDER BY "Age")
-
-(SELECT * FROM Teaching WHERE (And #t (equal? "Name" "David")))
-
-Teaching
-
-(replace
- (And #t (equal? "Name" "David"))
- Teaching)
-
-(SELECT * FROM Teaching ORDER BY
- (+ (string-length "Name") (string-length "Course")))
-|#
