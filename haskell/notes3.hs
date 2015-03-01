@@ -1,3 +1,6 @@
+import Prelude hiding (Maybe, Nothing, Just)
+-- http://stackoverflow.com/questions/16430025/ambiguous-occurrence
+
 -- class 3
 
 -- type and typeclass
@@ -103,3 +106,76 @@ safeDiv x y = Success (div x y)
 data Day = Mon | Tue | Wed | Thu | Fri | Sat | Sun
 -- good way to create enum
 
+
+helper :: MaybeInt -> MaybeInt
+helper Failure = Failure
+helper (Success n) = Success (n + 1)
+
+-- try avoid using short and single-use helper
+
+divThenAdd1 :: Integer -> MaybeInt
+divThenAdd1 x = 
+  let y = safeDiv 100 x
+  in case y of
+    Failure -> Failure
+    Success n ->
+      let z = safeDiv 100 (n - 10)
+      in case z of
+        Failure -> Failure
+        Success m -> Success (m + 1)
+
+-- chain of computation, but quite lengthy
+
+-- lift: raise the level of function, new context
+lift :: (Integer -> Integer) -> (MaybeInt -> MaybeInt)
+lift _ Failure = Failure
+lift f (Success n) = Success (f n)
+
+-- new haskell function compose
+-- > :t (.)
+-- (.) :: (b -> c) -> (a -> b) -> a -> c
+-- > ((+1) . (*5)) 10
+-- 51
+
+(~>) :: MaybeInt -> (Integer -> Integer) -> MaybeInt
+(~>) Failure _ = Failure
+(~>) (Success n) f = Success (f n)
+
+-- > (Success 10) ~> (*5) ~> (+1)
+-- Sucess 51
+
+(>~>) :: MaybeInt -> (Integer -> MaybeInt) -> MaybeInt
+(>~>) Failure _ = Failure
+(>~>) (Success n) f = f n
+
+safeDivOf100 = safeDiv 100
+-- > (Success 4) >~> safeDivOf100 ~> (+10)
+-- Success 35
+-- > (Success 4) >~> safeDivOf100 ~> (+10)
+-- Success 35
+
+-- polymorphic type
+-- data Maybe a = Failure | Success a deriving Show
+-- or use the haskell built in with Nothing | Just
+
+data Maybe a = Nothing | Just a deriving Show
+-- Maybe Int
+-- Maybe [[Char]]
+-- Maybe [[Int -> Int]]
+
+-- > :t Nothing
+-- Nothing :: Maybe a
+-- > :t (Just True)
+-- (Just True) :: Maybe Bool
+-- > :t (Just ["123"])
+-- (Just ["123"]) :: Maybe [[Char]]
+
+-- now we can redefine with polymorphic types
+
+(~~>) :: Maybe a -> (a -> b) -> Maybe b
+(~~>) Nothing _ = Nothing
+(~~>) (Just n) f = Just (f n)
+
+(>~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
+(>~~>) Nothing _ = Nothing
+(>~~>) (Just n) f = f n

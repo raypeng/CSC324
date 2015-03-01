@@ -26,3 +26,5 @@ main :: IO ()
 main = do
     runTestTT treeSumTests
     runTestTT eitherMapTests
+    return ()
+
