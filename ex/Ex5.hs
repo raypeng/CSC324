@@ -32,8 +32,17 @@ data Tree = Empty | Node (Maybe Integer) Tree Tree deriving Show
 -- 1) If the tree is empty, return Just 0
 -- 2) If the tree is non-empty but only has "Nothing" values,
 --    return Nothing
+fplus :: Num a => Maybe a -> Maybe a -> Maybe a
+fplus Nothing Nothing = Nothing
+fplus (Just a) Nothing = Just a
+fplus Nothing (Just a) = Just a
+fplus (Just a) (Just b) = Just (a + b)
+
 treeSum :: Tree -> Maybe Integer
-treeSum = undefined
+treeSum Empty = Just 0
+treeSum (Node Nothing Empty Empty) = Nothing
+treeSum (Node node left right) = fplus node (fplus (treeSum left) (treeSum right))
+
 
 -- Question 2
 -- This question explores another classic type in Haskell: Either.
@@ -48,4 +57,5 @@ treeSum = undefined
 -- depending on which is compatible with the inner type.
 -- The type signature reveals more, as does the sample test.
 eitherMap :: (a -> c) -> (b -> d) -> Either a b -> Either c d
-eitherMap = undefined
+eitherMap fa fb (Left a) = Left (fa a)
+eitherMap fa fb (Right b) = Right (fb b)
