@@ -1,7 +1,7 @@
 import Prelude hiding (Maybe, Nothing, Just)
 -- http://stackoverflow.com/questions/16430025/ambiguous-occurrence
 
--- class 3
+-- class 5
 
 -- type and typeclass
 
@@ -80,6 +80,8 @@ f x = x + 5
 -- 3.5 :: Integer
 -- is not coersion, is type signature
 
+
+-- class 6
 
 -- capture more abstract concept with types
 

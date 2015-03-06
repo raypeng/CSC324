@@ -1,4 +1,4 @@
--- class 2
+-- class 3
 
 -- type system
 
@@ -35,6 +35,8 @@ g x = (head x) : "345"
 -- > :type g
 -- g :: [Char] -> [Char]
 
+
+-- class 4
 
 -- haskell does automatic/implicit currying
 sayhi = h "hi"
