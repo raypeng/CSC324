@@ -18,6 +18,7 @@ import BaseParser (BaseExpr(LiteralInt, LiteralBool, Atom, Compound), parseFile)
 import Data.List
 import System.Environment (getArgs)
 
+import Test.QuickCheck
 
 -- |Run interpreter on an input file,
 --  either from commandline or user input.
@@ -45,14 +46,20 @@ interpretPaddle (Just exprs) =
     let ast = map parseExpr exprs
         vals = map evaluate ast
     in
-        -- String representations of each value, joined with newlines
-        unlines (map show vals)
+      -- String representations of each value, joined with newlines
+      -- unlines (map show ast)
+      unlines (map show vals)
+
 
 
 -- An expression data type
 data Expr = Number Integer |
             Boolean Bool |
-            If Expr Expr Expr
+            If Expr Expr Expr |
+            AddOp Expr Expr |
+            MulOp Expr Expr
+
+
 
 instance Show Expr where
     show (Number x) = show x
@@ -63,6 +70,11 @@ instance Show Expr where
     -- expression forms.
     show (If e1 e2 e3) =
         "(if " ++ show e1 ++ " " ++ show e2 ++ " " ++ show e3 ++ ")"
+    show (AddOp e1 e2) = 
+        "(+ " ++ show e1 ++ " " ++ show e2 ++ ")"
+    show (MulOp e1 e2) =
+        "(* " ++ show e1 ++ " " ++ show e2 ++ ")"
+
 
 
 -- |Take a base tree produced by the starter code,
@@ -73,6 +85,11 @@ parseExpr (LiteralBool b) = Boolean b
 parseExpr (Compound [Atom "if", b, x, y]) =
     If (parseExpr b) (parseExpr x) (parseExpr y)
 
+parseExpr (Compound [Atom "+", x, y]) = 
+    AddOp (parseExpr x) (parseExpr y)
+parseExpr (Compound [Atom "*", x, y]) =
+    MulOp (parseExpr x) (parseExpr y)
+
 
 -- |Evaluate an AST by simplifying it into
 --  a number, boolean, list, or function value.
@@ -81,5 +98,9 @@ evaluate (Number n) = Number n
 evaluate (Boolean b) = Boolean b
 evaluate (If cond x y) =
     case cond of
-        Boolean True -> x
-        Boolean False -> y
+      Boolean True -> x
+      Boolean False -> y
+
+evalutate (AddOp x y) = Number 1
+evalutate (MulOp x y) = Number 2
+evalutate a = Number 0
