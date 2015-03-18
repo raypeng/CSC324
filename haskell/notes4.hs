@@ -83,7 +83,7 @@ f >~> g = \stack ->
 addOneTop = pop >~> \result -> push (result + 1)
 duplicateTop = pop >~> \result -> (push result >>> push result)
 
--- we can get ride of let
+-- we can get rid of let
 -- and simplify the definition
 reverseTopTwo3 :: StackOp ()
 reverseTopTwo3 =

@@ -18,7 +18,6 @@ import BaseParser (BaseExpr(LiteralInt, LiteralBool, Atom, Compound), parseFile)
 import Data.List
 import System.Environment (getArgs)
 
-import Test.QuickCheck
 
 -- |Run interpreter on an input file,
 --  either from commandline or user input.
@@ -101,6 +100,12 @@ evaluate (If cond x y) =
       Boolean True -> x
       Boolean False -> y
 
-evalutate (AddOp x y) = Number 1
-evalutate (MulOp x y) = Number 2
-evalutate a = Number 0
+evaluate (AddOp x y) = (evaluate x) !+ (evaluate y)
+evaluate (MulOp x y) = (evaluate x) !* (evaluate y)
+
+
+-- | !+ for +
+(Number a) !+ (Number b) = Number (a + b)
+
+-- | !* for *
+(Number a) !* (Number b) = Number (a * b)
