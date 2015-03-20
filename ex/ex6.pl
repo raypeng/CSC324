@@ -14,7 +14,8 @@ sublisthelper(0, [X|Xs], [_|Ys]) :- sublisthelper(0, [X|Xs], Ys).
 with([], E, [E]).
 with([X|Xs], E, [X|[E|Xs]]).
 with([X|Xs], E, [E|[X|Xs]]).
-with([X|Xs], E, [X|Ys]) :- with(Xs, E, Ys).
+% need to enforce E != F, else more results will be returned
+with([X|Xs], E, [X|[F|Ys]]) :- with(Xs, E, [F|Ys]), not(E = F).
 
 % shuffled(L, S) : S is list L in some order.
 % You may assume both L and S are fully instantiated.

@@ -20,4 +20,3 @@ elemRight x = foldr (\a b -> (x == a) || b) False
 -- If you get stuck, first try to define the list
 -- [1, 2, 4, 8, 16, ...]
 geoSeq a r = a : map (\x -> r * x) (geoSeq a r)
-
