@@ -47,9 +47,9 @@ interpretPaddle (Just exprs) =
     let asts = map parseExpr exprs
         res = my_eval_all asts
 -- limit number of lines according to err type if any
-        nodefine = filter_out_nooutput res
-        vals = restrict_output nodefine
---        vals = my_eval_all asts
+--        nodefine = filter_out_nooutput res
+--        vals = restrict_output nodefine
+        vals = my_eval_all asts
     in
       -- String representations of each value, joined with newlines
 --      unlines (map show exprs) -- show BaseExpr
