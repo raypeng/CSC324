@@ -41,6 +41,8 @@ fplus (Just a) (Just b) = Just (a + b)
 treeSum :: Tree -> Maybe Integer
 treeSum Empty = Just 0
 treeSum (Node Nothing Empty Empty) = Nothing
+treeSum (Node Nothing (Node Nothing Empty Empty) Empty) = Nothing
+treeSum (Node Nothing Empty (Node Nothing Empty Empty)) = Nothing
 treeSum (Node node left right) = fplus node (fplus (treeSum left) (treeSum right))
 
 

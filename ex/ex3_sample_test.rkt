@@ -29,9 +29,13 @@ do not raise errors when called.
 ; Tests for curry-2
 (define (add2 x y) (+ 2 x y))
 (define func (curry-2 add2))
+(define (div x y) (/ x y))
+(define func1 (curry-2 div))
 
 (test ((func 10) 20) 
       32)
+(test ((func1 10) 2)
+      5)
 
 ; Tests for curry-n
 (define g (curry-n add2 2))

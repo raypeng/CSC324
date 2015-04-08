@@ -12,7 +12,7 @@ contains(node(_, _, T2), Elem) :- contains(T2, Elem).
 % preorder(T, List)
 preorder(empty, []).
 preorder(node(E, T1, T2), [E|Es]) :-
-    preorder(T1, L1), preorder(T2, L2), append(L1, L2, Es).
+    preorder(T1, L1), append(L1, L2, Es), preorder(T2, L2).
 
 
 % insert(T1, Elem, T2)

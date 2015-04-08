@@ -7,7 +7,8 @@ treeSumTests = TestList [
     Nothing ~=? treeSum (Node Nothing Empty Empty),
     Just 4 ~=? treeSum (Node (Just 4) Empty Empty),
     Just 3 ~=? treeSum (Node (Just 3) (Node Nothing Empty Empty) (Node Nothing Empty Empty)),
-    Nothing ~=? treeSum (Node Nothing (Node Nothing Empty Empty) (Node Nothing Empty Empty))
+    Nothing ~=? treeSum (Node Nothing (Node Nothing Empty Empty) (Node Nothing Empty Empty)),
+    Nothing ~=? treeSum (Node Nothing (Node Nothing Empty Empty) Empty)
     ]
 
 -- Helpers for eitherMap

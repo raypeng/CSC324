@@ -59,8 +59,8 @@ few lines of code, same as before.
 |#
 
 (define (curry-2 f)
-  (lambda (y)
-    (lambda (x)
+  (lambda (x)
+    (lambda (y)
       (f x y))))
 
 #|
