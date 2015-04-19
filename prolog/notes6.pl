@@ -75,7 +75,6 @@ happy(X) :-
 happy(X) :-
     teacher(X), teaching(X, csc324).
 
-chocolate(bob).
 chocolate(david).
 
 % veryHappy(X) :- happy(X), chocolate(X).

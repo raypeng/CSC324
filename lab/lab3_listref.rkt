@@ -47,7 +47,7 @@ You're encourage to write your own tests for these ones.
 '("b" "c" "e" "a" "b")
 |#
 
-(define (list-ref-many is)
+(define (list-ref-many-old is)
   (define (proc is lst)
     (if (empty? is)
         '()
@@ -58,6 +58,14 @@ You're encourage to write your own tests for these ones.
     (if (member "ERROR" mapped)
         "ERROR"
         mapped)))
+
+(define (list-ref-many is)
+  (lambda (lst)
+    (let ([mapped (map (lambda (i) ((list-ref-one i) lst)) is)])
+      (if (member "ERROR" mapped)
+          "ERROR"
+          mapped))))
+                       
 
 (test 
  ((list-ref-many '(1 2 4 0 1)) '("a" "b" "c" "d" "e"))

@@ -3,8 +3,8 @@
 teaching(blah, blahblah).
 
 % student(ella).
-% student(ella) :- taking(bob, w).
 % student(X).
+% student(ella) :- taking(bob, w).
 % [trace]  ?- student(ella).
 %    Call: (6) student(ella) ? 
 %    Exit: (6) student(ella) ? 
@@ -106,3 +106,4 @@ happy(X) :- student(X), taking(X, csc324).
 %    Exit: (6) happy(ella) ? 
 % X = ella.
 
+% false is only shown if last unification eval to fail

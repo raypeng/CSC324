@@ -18,7 +18,7 @@ preorder(node(E, T1, T2), [E|Es]) :-
 % insert(T1, Elem, T2)
 % You may asume that T1 and Elem are fully instantiated.
 insert(T1, Elem, T2) :-
-    preorder(T1, L1), preorder(T2, L2), with(L1, Elem, L2).
+    preorder(T1, L1), with(L1, Elem, L2), preorder(T2, L2).
 
 
 % with(L, E, LE) : LE is the the list L with the item E inserted somewhere.

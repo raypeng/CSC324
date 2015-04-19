@@ -38,10 +38,13 @@ You may use either explicit recursion, or higher-order list functions.
 ; Feel free to change this signature to use the shorthand for defining functions
 ; (define (search-table ...) (...))
 
-(define (search-table table item)
+(define (search-table-old table item)
   (define (satisfy? lst)
     (not (equal? #f (member item lst))))
   (filter satisfy? table))
+
+(define (search-table table item)
+  (filter (lambda (lst) (member item lst)) table))
 
 #|
 (search-table-2 table item [pos])
